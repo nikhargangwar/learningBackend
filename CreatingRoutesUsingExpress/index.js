@@ -10,12 +10,12 @@ app.get('/api/todos',(req,res)=>{
 });
 
 app.get('/api/todos/:id',(req,res)=>{
-    let id = req.params.id;
-    let todo = data.find((todo) => todo.id === parseInt(id));
+    const id = req.params.id;
+    const todo = data.find((todo) => todo.id === parseInt(id));
     if(!todo){
-        res.send('Item with such id not found');
+       return res.send('Item with such id not found');
     }
-    res.send(todo);
+    return res.send(todo);
 });
 
 app.post('/api/todos',(req,res)=>{
