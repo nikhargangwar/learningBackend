@@ -9,4 +9,4 @@ app.use(express.json());
 app.use('/api/todos',todoRouter);
 
 //starting server
-app.listen(3000,()=>console.log('app started on port 3000'));
+app.listen(4000,()=>console.log('app started on port 4000'));

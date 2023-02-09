@@ -1,15 +1,22 @@
 const data = require('./data');
-const db = require('../database/models')
-const todosService = require('./services.js')
-const Joi = require('joi');
+const HTTPError = require('../src/utils/httperror');
 
+const todosService = require('./services.js');
 // const getAllTodos =  (req,res)=>{
 //     res.send(data);
 // };
 
-const getAllTodos = async (req,res)=>{
-    res.send(await todosService.getAllTaskFromDb());
-}
+const getAllTodos = async (req, res) => {
+    try {
+        res.send(await todosService.getAllTaskFromDb());
+    }
+    catch (err) {
+        if (err instanceof HTTPError) {
+            return res.status(err.code).send({ message: err.message });
+        }
+        res.status(500).send(err.message);
+    }
+};
 
 
 
@@ -22,10 +29,16 @@ const getAllTodos = async (req,res)=>{
 //     return res.send(todo);
 // };
 
-const getTodosById =(async(req,res)=>{
-
-    const id = req.params.id;
-    return res.send( await todosService.getTodoFromDb(id) );
+const getTodosById = (async (req, res) => {
+    try {
+        const id = req.params.id;
+        return res.send(await todosService.getTodoFromDb(id));
+    } catch (err) {
+        if (err instanceof HTTPError) {
+            return res.status(err.code).send({ message: err.message })
+        }
+        res.status(500).send(err.message);
+    }
 });
 
 
@@ -34,30 +47,20 @@ const getTodosById =(async(req,res)=>{
 //     body['completed'] = false;
 //     data.push(body);
 //     return res.send('item has been added successfully');
-    
+
 // };
 
-const postTodo = (async (req,res)=>{
-    const schema = Joi.object({
-        title: Joi.string()
-            .min(3)
-            .max(30)
-            .required(),
-        isComplete: Joi.boolean()
-    })
-
-    const{error,value} = schema.validate(req.body);
-
-    if(!error){
+const postTodo = (async (req, res) => {
+    try {
         const body = req.body;
-        const result = await todosService.postTodoToDb(body)
-      res.send(result);
+        const result = await todosService.postTodoToDb(body);
+        res.send(result);
+    } catch (err) {
+        if (err instanceof HTTPError) {
+            return res.status(err.code).send({ message: err.message })
+        }
+        res.status(500).send(err.message);
     }
-    else{
-        res.send(error.message);
-    }
-    
-    
 });
 
 // const deleteTodo = (req,res)=>{
@@ -68,21 +71,27 @@ const postTodo = (async (req,res)=>{
 //     return res.send('item has been deleted successfully');
 // };
 
-const deleteTodo = (async(req,res)=>{
+const deleteTodo = (async (req, res) => {
+    try {
+        const id = req.params.id;
 
-    const id = req.params.id;
+        const result = await todosService.deleteTodoFromDb(id);
 
-    const result = await todosService.deleteTodoFromDb(id);
-   
-    if(result)
-    {
-        return res.json({message:"item deleted"});
+        if (result) {
+            return res.json({ message: 'item deleted' });
+        }
+        else {
+            return res.json({ message: 'no such item exist' });
+        }
     }
-    else{
-        return res.json({message:"no such item exist"});
+    catch (err) {
+        if (err instanceof HTTPError) {
+            return res.status(err.code).send({ message: err.message })
+        }
+        res.status(500).send(err.message);
     }
-    
-    
+
+
 });
 
 
@@ -96,29 +105,37 @@ const deleteTodo = (async(req,res)=>{
 //     return res.send(todo);
 // };
 
-const patchTodoById =(async(req,res)=>{
-    const {title}= req.body;
-    const id = req.params.id;
-    
-   const result =  await todosService.patchTodoByIdFromDb(title,id)
+const patchTodoById = (async (req, res) => {
 
-   if(result)
-   {
-    return res.json({message:"item updated"});
-   }
-   else{
-    return res.json({message:"no such item exist"});
-   }
-    
+    try {
+        const { title } = req.body;
+        const id = req.params.id;
+
+        const result = await todosService.patchTodoByIdFromDb(title, id);
+
+        if (result) {
+            return res.json({ message: 'item updated' });
+        }
+        else {
+            return res.json({ message: 'no such item exist' });
+        }
+
+    } catch (err) {
+        if (err instanceof HTTPError) {
+            return res.status(err.code).send({ message: err.message })
+        }
+        res.status(500).send(err.message);
+    }
+
 });
 
-const putTodoById = (req,res)=>{
-    const {id,title,description}= req.body;
-    const todo = data.find((todo)=>todo.id===parseInt(req.params.id));
+const putTodoById = (req, res) => {
+    const { id, title, description } = req.body;
+    const todo = data.find((todo) => todo.id === parseInt(req.params.id));
 
     todo.id = id;
     todo.title = title;
     todo.description = description;
     return res.send(todo);
 };
-module.exports= {getAllTodos,getTodosById,postTodo,deleteTodo,patchTodoById,putTodoById};
+module.exports = { getAllTodos, getTodosById, postTodo, deleteTodo, patchTodoById, putTodoById };
